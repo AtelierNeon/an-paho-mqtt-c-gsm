@@ -197,13 +197,17 @@ IF (PAHO_BUILD_SHARED)
                 ${PROJECT_BINARY_DIR})
     ENDFOREACH()
     
-	INSTALL(TARGETS paho-mqtt3c paho-mqtt3a
-		EXPORT eclipse-paho-mqtt-cTargets
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    INSTALL(TARGETS MQTTVersion
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+        INSTALL(TARGETS paho-mqtt3c paho-mqtt3a
+            EXPORT eclipse-paho-mqtt-cTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    ENDIF()
+    IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+        INSTALL(TARGETS MQTTVersion
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    ENDIF()
 ENDIF()
 
 IF (PAHO_BUILD_STATIC)
@@ -231,20 +235,24 @@ IF (PAHO_BUILD_STATIC)
                 ${PROJECT_BINARY_DIR})
     ENDFOREACH()
 
-    IF (NOT PAHO_BUILD_SHARED)
-        INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
-            EXPORT eclipse-paho-mqtt-cTargets
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    ELSE()
-        INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+        IF (NOT PAHO_BUILD_SHARED)
+            INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+                EXPORT eclipse-paho-mqtt-cTargets
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+        ELSE()
+            INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        ENDIF()
     ENDIF()
 ENDIF()
 
-INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h MQTTProperties.h MQTTReasonCodes.h MQTTSubscribeOpts.h MQTTExportDeclarations.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+IF (NOT PAHO_WITHOUT_INSTALL_HEADERS AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h MQTTProperties.h MQTTReasonCodes.h MQTTSubscribeOpts.h MQTTExportDeclarations.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ENDIF()
 
 IF (PAHO_WITH_SSL)
     SET(OPENSSL_ROOT_DIR "" CACHE PATH "Directory containing OpenSSL libraries and includes")
@@ -298,11 +306,13 @@ IF (PAHO_WITH_SSL)
                 PUBLIC
                     OpenSSL::SSL OpenSSL::Crypto ${LIBS_SYSTEM})
         ENDFOREACH()
-        INSTALL(TARGETS paho-mqtt3cs paho-mqtt3as
-            #EXPORT eclipse-paho-mqtt-cTargets
-            ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
+        IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+            INSTALL(TARGETS paho-mqtt3cs paho-mqtt3as
+                #EXPORT eclipse-paho-mqtt-cTargets
+                ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
+                LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
+        ENDIF()
     ENDIF()
 
     IF (PAHO_BUILD_STATIC)
@@ -343,15 +353,17 @@ IF (PAHO_WITH_SSL)
 	            LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}")
 	    ENDIF()
 
-        IF (NOT PAHO_BUILD_SHARED)
-            INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
-                #EXPORT eclipse-paho-mqtt-cTargets
-                ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
-        ELSE()
-            INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+            IF (NOT PAHO_BUILD_SHARED)
+                INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+                    #EXPORT eclipse-paho-mqtt-cTargets
+                    ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
+                    LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
+                    RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
+            ELSE()
+                INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+            ENDIF()
         ENDIF()
         FOREACH(TARGET paho-mqtt3cs-static paho-mqtt3as-static)
             TARGET_INCLUDE_DIRECTORIES(${TARGET}
@@ -367,18 +379,22 @@ IF (PAHO_WITH_SSL)
     ENDIF()
 ENDIF()
 
-INSTALL(EXPORT eclipse-paho-mqtt-cTargets
-    FILE eclipse-paho-mqtt-cConfig.cmake
-    NAMESPACE eclipse-paho-mqtt-c::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
+IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    INSTALL(EXPORT eclipse-paho-mqtt-cTargets
+        FILE eclipse-paho-mqtt-cConfig.cmake
+        NAMESPACE eclipse-paho-mqtt-c::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
+ENDIF()
 
 INCLUDE(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE("eclipse-paho-mqtt-cConfigVersion.cmake"
     VERSION ${CLIENT_VERSION}
     COMPATIBILITY SameMajorVersion)
-INSTALL(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/eclipse-paho-mqtt-cConfigVersion.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
+IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    INSTALL(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/eclipse-paho-mqtt-cConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
+ENDIF()
 
 # Base64 test
 ADD_EXECUTABLE( Base64Test EXCLUDE_FROM_ALL Base64.c Base64.h )
