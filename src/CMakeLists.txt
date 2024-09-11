@@ -345,7 +345,7 @@ IF (PAHO_WITH_SSL)
 
         IF (NOT PAHO_BUILD_SHARED)
             INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
-                EXPORT eclipse-paho-mqtt-cTargets
+                #EXPORT eclipse-paho-mqtt-cTargets
                 ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
                 LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
                 RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
