@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 #if defined(__CYGWIN__)
 			snprintf(namebuf, sizeof(namebuf), "cyg%s-1.dll", libraries[i]);
 #elif defined(_WIN32) || defined(_WIN64)
-			snprintf(namebuf, sizeof(namebuf), "%s.dll", libraries[i]);
+			snprintf(namebuf, sizeof(namebuf), "lib%s.dll", libraries[i]);
 #elif defined(OSX)
 			snprintf(namebuf, sizeof(namebuf), "lib%s.1.dylib", libraries[i]);
 #else
