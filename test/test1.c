@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2022 IBM Corp., Ian Craggs
+ * Copyright (c) 2009, 2024 IBM Corp., Ian Craggs
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -750,9 +750,9 @@ int test4_run(int qos)
 
 		while (tokens[i] != -1)
 			MyLog(LOGA_DEBUG, "Pending delivery token %d", tokens[i++]);
-		MQTTClient_free(tokens);
 		assert1("no of tokens should be count", i == count, "no of tokens %d count %d", i, count);
 		mytoken = tokens[0];
+		MQTTClient_free(tokens);
 	}
 
 	MQTTClient_destroy(&c); /* force re-reading persistence on create */
@@ -1171,7 +1171,7 @@ exit:
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test6a};
+ 	int (*tests[])(struct Options) = {NULL, test1, test2, test3, test4, test5, test6, test6a};
 	int i;
 
 	xml = fopen("TEST-test1.xml", "w");

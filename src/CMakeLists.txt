@@ -1,5 +1,5 @@
 #*******************************************************************************
-#  Copyright (c) 2015, 2020 logi.cals GmbH and others
+#  Copyright (c) 2015, 2024 logi.cals GmbH, Frank Pagliughi <fpagliughi@mindspring.com> and others
 #
 #  All rights reserved. This program and the accompanying materials
 #  are made available under the terms of the Eclipse Public License v2.0
@@ -16,16 +16,14 @@
 #     Ian Craggs - update for MQTTV5 support
 #*******************************************************************************/
 
-# Note: on OS X you should install XCode and the associated command-line tools
-
 ## compilation/linkage settings
 
-CONFIGURE_FILE(VersionInfo.h.in
-    ${PROJECT_BINARY_DIR}/VersionInfo.h
-    @ONLY
-    )
+configure_file(VersionInfo.h.in
+  ${PROJECT_BINARY_DIR}/VersionInfo.h
+  @ONLY
+)
 
-SET(common_src
+set(common_src
   MQTTTime.c
   MQTTProtocolClient.c
   Clients.c
@@ -50,366 +48,452 @@ SET(common_src
   Proxy.c
 )
 
-IF (NOT PAHO_HIGH_PERFORMANCE)
-  SET(common_src ${common_src}
+if(NOT PAHO_HIGH_PERFORMANCE)
+  set(common_src ${common_src}
     StackTrace.c
     Heap.c
-    )
-ENDIF()
-
-SET(mqtt_version_src MQTTVersion.c)
-IF (WIN32)
-    INCLUDE(Windows-MyExeVersion)
-    generate_product_exe_version(PAHO_MQTTVERSION_VERSION_FILES
-        NAME "MQTTVersion - print the version strings of an MQTT client library"
-        BUNDLE "${PROJECT_DESCRIPTION}"
-        ICON ${PROJECT_SOURCE_DIR}/mqtt.ico
-        VERSION_MAJOR ${PAHO_VERSION_MAJOR}
-        VERSION_MINOR ${PAHO_VERSION_MINOR}
-        VERSION_PATCH ${PAHO_VERSION_PATCH}
-        VERSION_REVISION ${MY_REVISION}
-        ORIGINAL_FILENAME "MQTTVersion.exe")
-    SET(mqtt_version_src ${mqtt_version_src} ${PAHO_MQTTVERSION_VERSION_FILES})
-    SET(LIBS_SYSTEM ws2_32 crypt32 RpcRT4 advapi32)
-ELSEIF (UNIX)
-    IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-        SET(LIBS_SYSTEM c dl pthread rt)
-        # anl is only available with glibc so check if it is found before using
-        # it or build will fail on uclibc or musl
-        FIND_LIBRARY(LIB_ANL anl)
-        IF(LIB_ANL)
-            SET(LIBS_SYSTEM "${LIBS_SYSTEM}" anl)
-        ENDIF()
-        ADD_DEFINITIONS(-D_GNU_SOURCE -fvisibility=hidden)
-    ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Android")
-        SET(LIBS_SYSTEM c dl)
-    ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-        SET(LIBS_SYSTEM compat pthread)
-    ELSE()
-        SET(LIBS_SYSTEM c pthread)
-    ENDIF()
-ENDIF()
-
-IF (PAHO_BUILD_SHARED)
-# common compilation for libpaho-mqtt3c and libpaho-mqtt3a
-ADD_LIBRARY(common_obj OBJECT ${common_src})
-SET_TARGET_PROPERTIES(common_obj PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    COMPILE_DEFINITIONS "PAHO_MQTT_EXPORTS=1")
-ADD_EXECUTABLE(MQTTVersion ${mqtt_version_src})
-SET_TARGET_PROPERTIES(MQTTVersion PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    COMPILE_DEFINITIONS "PAHO_MQTT_IMPORTS=1")
-ENDIF()
-
-IF (PAHO_BUILD_STATIC)    
-ADD_LIBRARY(common_obj_static OBJECT ${common_src})
-SET_TARGET_PROPERTIES(common_obj_static PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    COMPILE_DEFINITIONS "PAHO_MQTT_STATIC=1")
-ENDIF()
-
-SET(mqtt_mqtt3c_src MQTTClient.c)
-SET(mqtt_mqtt3a_src MQTTAsync.c MQTTAsyncUtils.c)
-SET(mqtt_mqtt3cs_src MQTTClient.c SSLSocket.c)
-SET(mqtt_mqtt3as_src MQTTAsync.c MQTTAsyncUtils.c SSLSocket.c)
-IF(WIN32)
-    INCLUDE(Windows-MyDllVersion)
-    generate_product_dll_version(PAHO_MQTT3C_VERSION_FILES
-        NAME "Eclipse Paho Synchronous MQTT C Client Library"
-        BUNDLE "${PROJECT_DESCRIPTION}"
-        VERSION_MAJOR ${PAHO_VERSION_MAJOR}
-        VERSION_MINOR ${PAHO_VERSION_MINOR}
-        VERSION_PATCH ${PAHO_VERSION_PATCH}
-        VERSION_REVISION ${MY_REVISION}
-        ORIGINAL_FILENAME "libpaho-mqtt3c.dll"
-    )
-    SET(mqtt_mqtt3c_src ${mqtt_mqtt3c_src} ${PAHO_MQTT3C_VERSION_FILES})
-    generate_product_dll_version(PAHO_MQTT3A_VERSION_FILES
-        NAME "Eclipse Paho Asynchronous MQTT C Client Library"
-        BUNDLE "${PROJECT_DESCRIPTION}"
-        VERSION_MAJOR ${PAHO_VERSION_MAJOR}
-        VERSION_MINOR ${PAHO_VERSION_MINOR}
-        VERSION_PATCH ${PAHO_VERSION_PATCH}
-        VERSION_REVISION ${MY_REVISION}
-        ORIGINAL_FILENAME "libpaho-mqtt3a.dll"
-    )
-    SET(mqtt_mqtt3a_src ${mqtt_mqtt3a_src} ${PAHO_MQTT3A_VERSION_FILES})
-    generate_product_dll_version(PAHO_MQTT3CS_VERSION_FILES
-        NAME "Eclipse Paho Synchronous MQTT C Client Library with SSL"
-        BUNDLE "${PROJECT_DESCRIPTION}"
-        VERSION_MAJOR ${PAHO_VERSION_MAJOR}
-        VERSION_MINOR ${PAHO_VERSION_MINOR}
-        VERSION_PATCH ${PAHO_VERSION_PATCH}
-        VERSION_REVISION ${MY_REVISION}
-        ORIGINAL_FILENAME "libpaho-mqtt3cs.dll"
-    )
-    SET(mqtt_mqtt3cs_src ${mqtt_mqtt3cs_src} ${PAHO_MQTT3CS_VERSION_FILES})
-    generate_product_dll_version(PAHO_MQTT3AS_VERSION_FILES
-        NAME "Eclipse Paho Asynchronous MQTT C Client Library with SSL"
-        BUNDLE "${PROJECT_DESCRIPTION}"
-        VERSION_MAJOR ${PAHO_VERSION_MAJOR}
-        VERSION_MINOR ${PAHO_VERSION_MINOR}
-        VERSION_PATCH ${PAHO_VERSION_PATCH}
-        VERSION_REVISION ${MY_REVISION}
-        ORIGINAL_FILENAME "libpaho-mqtt3as.dll"
-    )
-    SET(mqtt_mqtt3as_src ${mqtt_mqtt3as_src} ${PAHO_MQTT3AS_VERSION_FILES})
+  )
 endif()
 
-IF (PAHO_BUILD_SHARED)
-    ADD_LIBRARY(paho-mqtt3c SHARED $<TARGET_OBJECTS:common_obj> ${mqtt_mqtt3c_src})
-    ADD_LIBRARY(paho-mqtt3a SHARED $<TARGET_OBJECTS:common_obj> ${mqtt_mqtt3a_src})
+set(mqtt_version_src MQTTVersion.c)
+if(WIN32)
+  include(Windows-MyExeVersion)
+  generate_product_exe_version(PAHO_MQTTVERSION_VERSION_FILES
+    NAME "MQTTVersion - print the version strings of an MQTT client library"
+    BUNDLE "${PROJECT_DESCRIPTION}"
+    ICON ${PROJECT_SOURCE_DIR}/mqtt.ico
+    VERSION_MAJOR ${PAHO_VERSION_MAJOR}
+    VERSION_MINOR ${PAHO_VERSION_MINOR}
+    VERSION_PATCH ${PAHO_VERSION_PATCH}
+    VERSION_REVISION ${MY_REVISION}
+    ORIGINAL_FILENAME "MQTTVersion.exe")
+  set(mqtt_version_src ${mqtt_version_src} ${PAHO_MQTTVERSION_VERSION_FILES})
+  if(PAHO_WITH_LIBRESSL)
+    set(LIBS_SYSTEM ws2_32 crypt32 rpcrt4 bcrypt)
+  else()
+    set(LIBS_SYSTEM ws2_32 crypt32 rpcrt4 advapi32)
+  endif()
+elseif(UNIX)
+  if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(LIBS_SYSTEM c dl pthread rt)
+    # anl is only available with glibc so check if it is found before using
+    # it or build will fail on uclibc or musl
+    find_library(LIB_ANL anl)
+    if(LIB_ANL)
+      set(LIBS_SYSTEM "${LIBS_SYSTEM}" anl)
+    endif()
+    if(PAHO_WITH_LIBUUID)
+      set(LIBS_SYSTEM "${LIBS_SYSTEM}" uuid)
+    endif()
+    add_definitions(-D_GNU_SOURCE -fvisibility=hidden)
+  elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
+    set(LIBS_SYSTEM c dl)
+  elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+    set(LIBS_SYSTEM compat pthread)
+  elseif(CMAKE_SYSTEM_NAME MATCHES "QNX")
+    set(LIBS_SYSTEM c)
+  else()
+    set(LIBS_SYSTEM c pthread)
+  endif()
+endif()
+
+if(PAHO_BUILD_SHARED)
+  # common compilation for libpaho-mqtt3c and libpaho-mqtt3a
+  add_library(common_obj OBJECT ${common_src})
+  set_target_properties(common_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  target_compile_definitions(common_obj PRIVATE PAHO_MQTT_EXPORTS=1)
+
+  add_executable(MQTTVersion ${mqtt_version_src})
+  target_compile_definitions(MQTTVersion PUBLIC PAHO_MQTT_IMPORTS=1)
+endif()
+
+if(PAHO_BUILD_STATIC)
+  add_library(common_obj_static OBJECT ${common_src})
+  set_target_properties(common_obj_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  target_compile_definitions(common_obj_static PRIVATE PAHO_MQTT_STATIC=1)
+endif()
+
+set(mqtt_mqtt3c_src MQTTClient.c)
+set(mqtt_mqtt3a_src MQTTAsync.c MQTTAsyncUtils.c)
+set(mqtt_mqtt3cs_src MQTTClient.c SSLSocket.c)
+set(mqtt_mqtt3as_src MQTTAsync.c MQTTAsyncUtils.c SSLSocket.c)
+if(WIN32)
+  include(Windows-MyDllVersion)
+  generate_product_dll_version(PAHO_MQTT3C_VERSION_FILES
+    NAME "Eclipse Paho Synchronous MQTT C Client Library"
+    BUNDLE "${PROJECT_DESCRIPTION}"
+    VERSION_MAJOR ${PAHO_VERSION_MAJOR}
+    VERSION_MINOR ${PAHO_VERSION_MINOR}
+    VERSION_PATCH ${PAHO_VERSION_PATCH}
+    VERSION_REVISION ${MY_REVISION}
+    ORIGINAL_FILENAME "libpaho-mqtt3c.dll"
+  )
+  set(mqtt_mqtt3c_src ${mqtt_mqtt3c_src} ${PAHO_MQTT3C_VERSION_FILES})
+  generate_product_dll_version(PAHO_MQTT3A_VERSION_FILES
+    NAME "Eclipse Paho Asynchronous MQTT C Client Library"
+    BUNDLE "${PROJECT_DESCRIPTION}"
+    VERSION_MAJOR ${PAHO_VERSION_MAJOR}
+    VERSION_MINOR ${PAHO_VERSION_MINOR}
+    VERSION_PATCH ${PAHO_VERSION_PATCH}
+    VERSION_REVISION ${MY_REVISION}
+    ORIGINAL_FILENAME "libpaho-mqtt3a.dll"
+  )
+  set(mqtt_mqtt3a_src ${mqtt_mqtt3a_src} ${PAHO_MQTT3A_VERSION_FILES})
+  generate_product_dll_version(PAHO_MQTT3CS_VERSION_FILES
+    NAME "Eclipse Paho Synchronous MQTT C Client Library with SSL"
+    BUNDLE "${PROJECT_DESCRIPTION}"
+    VERSION_MAJOR ${PAHO_VERSION_MAJOR}
+    VERSION_MINOR ${PAHO_VERSION_MINOR}
+    VERSION_PATCH ${PAHO_VERSION_PATCH}
+    VERSION_REVISION ${MY_REVISION}
+    ORIGINAL_FILENAME "libpaho-mqtt3cs.dll"
+  )
+  set(mqtt_mqtt3cs_src ${mqtt_mqtt3cs_src} ${PAHO_MQTT3CS_VERSION_FILES})
+  generate_product_dll_version(PAHO_MQTT3AS_VERSION_FILES
+    NAME "Eclipse Paho Asynchronous MQTT C Client Library with SSL"
+    BUNDLE "${PROJECT_DESCRIPTION}"
+    VERSION_MAJOR ${PAHO_VERSION_MAJOR}
+    VERSION_MINOR ${PAHO_VERSION_MINOR}
+    VERSION_PATCH ${PAHO_VERSION_PATCH}
+    VERSION_REVISION ${MY_REVISION}
+    ORIGINAL_FILENAME "libpaho-mqtt3as.dll"
+  )
+  set(mqtt_mqtt3as_src ${mqtt_mqtt3as_src} ${PAHO_MQTT3AS_VERSION_FILES})
+endif()
+
+if(PAHO_BUILD_SHARED)
+  add_library(paho-mqtt3c SHARED
+    $<TARGET_OBJECTS:common_obj>
+    ${mqtt_mqtt3c_src})
+  add_library(paho-mqtt3a SHARED
+    $<TARGET_OBJECTS:common_obj>
+    ${mqtt_mqtt3a_src})
+  
+  add_library(eclipse-paho-mqtt-c::paho-mqtt3c ALIAS paho-mqtt3c)
+  add_library(eclipse-paho-mqtt-c::paho-mqtt3a ALIAS paho-mqtt3a)
     
-    TARGET_LINK_LIBRARIES(paho-mqtt3c ${LIBS_SYSTEM})
-    TARGET_LINK_LIBRARIES(paho-mqtt3a ${LIBS_SYSTEM})
-    TARGET_LINK_LIBRARIES(MQTTVersion paho-mqtt3a paho-mqtt3c ${LIBS_SYSTEM})
+  target_link_libraries(paho-mqtt3c ${LIBS_SYSTEM})
+  target_link_libraries(paho-mqtt3a ${LIBS_SYSTEM})
+  target_link_libraries(MQTTVersion paho-mqtt3a paho-mqtt3c ${LIBS_SYSTEM})
     
-    SET_TARGET_PROPERTIES(
-        paho-mqtt3c paho-mqtt3a PROPERTIES
-        VERSION ${CLIENT_VERSION}
-        SOVERSION ${PAHO_VERSION_MAJOR}
-        COMPILE_DEFINITIONS "PAHO_MQTT_EXPORTS=1")
+  set_target_properties(paho-mqtt3c paho-mqtt3a PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    COMPILE_DEFINITIONS "PAHO_MQTT_EXPORTS=1"
+  )
 
-    IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-		SET(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
-		SET(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
-	ELSEIF (NOT WIN32)
-		SET(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
-		SET(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
-	ENDIF()
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
+    set(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
+  elseif(NOT WIN32)
+    set(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
+    set(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
+  endif()
 
-    IF (NOT WIN32)
-        SET_TARGET_PROPERTIES(
-            paho-mqtt3c PROPERTIES
-            LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}")
-        SET_TARGET_PROPERTIES(
-            paho-mqtt3a PROPERTIES
-            LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}")
-    ENDIF()
+  if(NOT WIN32)
+    set_target_properties(paho-mqtt3c PROPERTIES
+      LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}"
+    )
+    set_target_properties(paho-mqtt3a PROPERTIES
+      LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}"
+    )
+  endif()
 
-    FOREACH(TARGET paho-mqtt3c paho-mqtt3a)
-        TARGET_INCLUDE_DIRECTORIES(${TARGET}
-            PUBLIC
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-            PRIVATE
-                ${PROJECT_BINARY_DIR})
-    ENDFOREACH()
-    
-    IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-        INSTALL(TARGETS paho-mqtt3c paho-mqtt3a
-            EXPORT eclipse-paho-mqtt-cTargets
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    ENDIF()
-    IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-        INSTALL(TARGETS MQTTVersion
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    ENDIF()
-ENDIF()
+  foreach(TARGET paho-mqtt3c paho-mqtt3a)
+    target_include_directories(${TARGET}
+      PUBLIC
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      PRIVATE
+        ${PROJECT_BINARY_DIR})
+  endforeach()
 
-IF (PAHO_BUILD_STATIC)
-    ADD_LIBRARY(paho-mqtt3c-static STATIC $<TARGET_OBJECTS:common_obj_static> ${mqtt_mqtt3c_src})
-    ADD_LIBRARY(paho-mqtt3a-static STATIC $<TARGET_OBJECTS:common_obj_static> ${mqtt_mqtt3a_src})
+  if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    install(TARGETS paho-mqtt3c paho-mqtt3a
+      EXPORT eclipse-paho-mqtt-cTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+  endif()
+  if(NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    install(TARGETS MQTTVersion
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+  endif()
+endif()
 
-    TARGET_LINK_LIBRARIES(paho-mqtt3c-static ${LIBS_SYSTEM})
-    TARGET_LINK_LIBRARIES(paho-mqtt3a-static ${LIBS_SYSTEM})
-    IF (NOT WIN32)
-        SET_TARGET_PROPERTIES(paho-mqtt3c-static PROPERTIES OUTPUT_NAME paho-mqtt3c)
-        SET_TARGET_PROPERTIES(paho-mqtt3a-static PROPERTIES OUTPUT_NAME paho-mqtt3a)
-    ENDIF()       
-    SET_TARGET_PROPERTIES(
-        paho-mqtt3c-static paho-mqtt3a-static PROPERTIES
-        VERSION ${CLIENT_VERSION}
-        SOVERSION ${PAHO_VERSION_MAJOR}
-        COMPILE_DEFINITIONS "PAHO_MQTT_STATIC=1")
+if(PAHO_BUILD_STATIC)
+  add_library(paho-mqtt3c-static STATIC
+    $<TARGET_OBJECTS:common_obj_static>
+    ${mqtt_mqtt3c_src}
+  )
+  add_library(paho-mqtt3a-static STATIC
+    $<TARGET_OBJECTS:common_obj_static>
+    ${mqtt_mqtt3a_src}
+  )
 
-    FOREACH(TARGET paho-mqtt3c-static paho-mqtt3a-static)
-        TARGET_INCLUDE_DIRECTORIES(${TARGET}
-            PUBLIC
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-            PRIVATE
-                ${PROJECT_BINARY_DIR})
-    ENDFOREACH()
+  add_library(eclipse-paho-mqtt-c::paho-mqtt3c-static ALIAS paho-mqtt3c-static)
+  add_library(eclipse-paho-mqtt-c::paho-mqtt3a-static ALIAS paho-mqtt3a-static)
 
-    IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-        IF (NOT PAHO_BUILD_SHARED)
-            INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
-                EXPORT eclipse-paho-mqtt-cTargets
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-        ELSE()
-            INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-        ENDIF()
-    ENDIF()
-ENDIF()
+  target_link_libraries(paho-mqtt3c-static ${LIBS_SYSTEM})
+  target_link_libraries(paho-mqtt3a-static ${LIBS_SYSTEM})
 
-IF (NOT PAHO_WITHOUT_INSTALL_HEADERS AND NOT PAHO_WITHOUT_INSTALL_ALL)
-    INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h MQTTProperties.h MQTTReasonCodes.h MQTTSubscribeOpts.h MQTTExportDeclarations.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-ENDIF()
+  if(NOT WIN32)
+    set_target_properties(paho-mqtt3c-static PROPERTIES OUTPUT_NAME paho-mqtt3c)
+    set_target_properties(paho-mqtt3a-static PROPERTIES OUTPUT_NAME paho-mqtt3a)
+  endif()       
 
-IF (PAHO_WITH_SSL)
-    SET(OPENSSL_ROOT_DIR "" CACHE PATH "Directory containing OpenSSL libraries and includes")
+  set_target_properties(paho-mqtt3c-static paho-mqtt3a-static PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    COMPILE_DEFINITIONS "PAHO_MQTT_STATIC=1"
+  )
+
+  foreach(TARGET paho-mqtt3c-static paho-mqtt3a-static)
+    target_include_directories(${TARGET}
+      PUBLIC
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      PRIVATE
+        ${PROJECT_BINARY_DIR})
+  endforeach()
+
+  if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+    if(NOT PAHO_BUILD_SHARED)
+      install(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+        EXPORT eclipse-paho-mqtt-cTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    else()
+      install(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      )
+    endif()
+  endif()
+endif()
+
+if(NOT PAHO_WITHOUT_INSTALL_HEADERS AND NOT PAHO_WITHOUT_INSTALL_ALL)
+  install(
+    FILES
+      MQTTAsync.h
+      MQTTClient.h
+      MQTTClientPersistence.h
+      MQTTProperties.h
+      MQTTReasonCodes.h
+      MQTTSubscribeOpts.h
+      MQTTExportDeclarations.h
+    DESTINATION
+      ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+endif()
+
+if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
+  if(PAHO_WITH_LIBRESSL)
+    find_package(LibreSSL REQUIRED)
+    set(SSL_LIBRARY_NAME LibreSSL)
+    set(SSL_INCLUDE_DIR ${LIBRESSL_INCLUDE_DIR})
+    set(SSL_ROOT_DIR ${LIBRESSL_ROOT_DIR})
+  else()
     find_package(SiblingOpenSSL)
-    IF (NOT OPENSSL_FOUND)
-        find_package(OpenSSL REQUIRED)
-    ENDIF()
+    if(NOT OPENSSL_FOUND)
+      find_package(OpenSSL REQUIRED)
+    endif()
+    set(SSL_LIBRARY_NAME OpenSSL)
+    set(SSL_INCLUDE_DIR ${OPENSSL_INCLUDE_DIR})
+    set(SSL_ROOT_DIR ${OPENSSL_ROOT_DIR})
+  endif()
+  message(STATUS "Using ${SSL_LIBRARY_NAME} with headers at ${SSL_INCLUDE_DIR}")
 
-    IF (PAHO_BUILD_SHARED)
-        ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
-    	## Note: SSL libraries must be recompiled due ifdefs
-    	ADD_LIBRARY(common_ssl_obj OBJECT ${common_src})
-    	TARGET_INCLUDE_DIRECTORIES(common_ssl_obj PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
-    	SET_PROPERTY(TARGET common_ssl_obj PROPERTY	POSITION_INDEPENDENT_CODE ON)
-    	SET_PROPERTY(TARGET common_ssl_obj PROPERTY COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_EXPORTS=1")
+  if(PAHO_BUILD_SHARED)
+    ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
+    ## Note: SSL libraries must be recompiled due to ifdefs
+    add_library(common_ssl_obj OBJECT ${common_src})
+    target_include_directories(common_ssl_obj PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
+
+    set_property(TARGET common_ssl_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(common_ssl_obj PRIVATE OPENSSL=1 PAHO_MQTT_EXPORTS=1)
     
-        ADD_LIBRARY(paho-mqtt3cs SHARED $<TARGET_OBJECTS:common_ssl_obj> ${mqtt_mqtt3cs_src})
-        ADD_LIBRARY(paho-mqtt3as SHARED $<TARGET_OBJECTS:common_ssl_obj> ${mqtt_mqtt3as_src})
+    add_library(paho-mqtt3cs SHARED
+      $<TARGET_OBJECTS:common_ssl_obj>
+      ${mqtt_mqtt3cs_src}
+    )
+    add_library(paho-mqtt3as SHARED
+      $<TARGET_OBJECTS:common_ssl_obj>
+      ${mqtt_mqtt3as_src}
+    )
+
+    add_library(eclipse-paho-mqtt-c::paho-mqtt3cs ALIAS paho-mqtt3cs)
+    add_library(eclipse-paho-mqtt-c::paho-mqtt3as ALIAS paho-mqtt3as)
+
+    set_target_properties(paho-mqtt3cs paho-mqtt3as PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      SOVERSION ${PROJECT_VERSION_MAJOR}
+      COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_EXPORTS=1"
+    )
+
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+      set(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
+      set(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
+    elseif(NOT WIN32)
+      set(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
+      set(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
+    endif()
+
+    if(NOT WIN32)
+      set_target_properties(paho-mqtt3cs PROPERTIES
+        LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}"
+      )
+      set_target_properties(paho-mqtt3as PROPERTIES
+        LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}")
+    endif()
+
+    foreach(TARGET paho-mqtt3cs paho-mqtt3as)
+      target_include_directories(${TARGET}
+        PUBLIC
+          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        PRIVATE
+          ${PROJECT_BINARY_DIR}
+      )
+      target_link_libraries(${TARGET}
+        PUBLIC
+          ${SSL_LIBRARY_NAME}::SSL ${SSL_LIBRARY_NAME}::Crypto ${LIBS_SYSTEM}
+      )
+    endforeach()
+
+    if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+      install(TARGETS paho-mqtt3cs paho-mqtt3as
+        #EXPORT eclipse-paho-mqtt-cTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
+  endif()
+
+  if(PAHO_BUILD_STATIC)
+    ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
+    ## Note: SSL libraries must be recompiled due ifdefs
+    add_library(common_ssl_obj_static OBJECT ${common_src})
+    target_include_directories(common_ssl_obj_static PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
+
+    set_property(TARGET common_ssl_obj_static PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(common_ssl_obj_static PRIVATE OPENSSL=1 PAHO_MQTT_STATIC=1)
     
-        SET_TARGET_PROPERTIES(
-            paho-mqtt3cs paho-mqtt3as PROPERTIES
-            VERSION ${CLIENT_VERSION}
-            SOVERSION ${PAHO_VERSION_MAJOR}
-            COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_EXPORTS=1")
+    add_library(paho-mqtt3cs-static STATIC
+      $<TARGET_OBJECTS:common_ssl_obj_static>
+      ${mqtt_mqtt3cs_src}
+    )
+    add_library(paho-mqtt3as-static STATIC
+      $<TARGET_OBJECTS:common_ssl_obj_static>
+      ${mqtt_mqtt3as_src}
+    )
 
-        IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-		    SET(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
-		    SET(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
-        ELSEIF (NOT WIN32)
-            SET(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
-		    SET(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
-        ENDIF()
+    add_library(eclipse-paho-mqtt-c::paho-mqtt3cs-static ALIAS paho-mqtt3cs-static)
+    add_library(eclipse-paho-mqtt-c::paho-mqtt3as-static ALIAS paho-mqtt3as-static)
 
-        IF (NOT WIN32)
-            SET_TARGET_PROPERTIES(
-	           paho-mqtt3cs PROPERTIES
-	           LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}")
-	        SET_TARGET_PROPERTIES(
-	           paho-mqtt3as PROPERTIES
-	           LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}")
-        ENDIF()
+    set_target_properties(paho-mqtt3cs-static paho-mqtt3as-static PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      SOVERSION ${PROJECT_VERSION_MAJOR}
+      COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_STATIC=1"
+    )
 
-        FOREACH(TARGET paho-mqtt3cs paho-mqtt3as)
-            TARGET_INCLUDE_DIRECTORIES(${TARGET}
-                PUBLIC
-                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                PRIVATE
-                    ${PROJECT_BINARY_DIR})
-            TARGET_LINK_LIBRARIES(${TARGET}
-                PUBLIC
-                    OpenSSL::SSL OpenSSL::Crypto ${LIBS_SYSTEM})
-        ENDFOREACH()
-        IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-            INSTALL(TARGETS paho-mqtt3cs paho-mqtt3as
-                #EXPORT eclipse-paho-mqtt-cTargets
-                ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
-        ENDIF()
-    ENDIF()
+    if(NOT WIN32)
+      set_target_properties(paho-mqtt3cs-static PROPERTIES OUTPUT_NAME paho-mqtt3cs)
+      set_target_properties(paho-mqtt3as-static PROPERTIES OUTPUT_NAME paho-mqtt3as)
+    endif()
 
-    IF (PAHO_BUILD_STATIC)
-        ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
-    	## Note: SSL libraries must be recompiled due ifdefs
-    	ADD_LIBRARY(common_ssl_obj_static OBJECT ${common_src})
-    	TARGET_INCLUDE_DIRECTORIES(common_ssl_obj_static PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
-    	SET_PROPERTY(TARGET common_ssl_obj_static PROPERTY POSITION_INDEPENDENT_CODE ON)
-    	SET_PROPERTY(TARGET common_ssl_obj_static PROPERTY COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_STATIC=1")
-    
-        ADD_LIBRARY(paho-mqtt3cs-static STATIC $<TARGET_OBJECTS:common_ssl_obj_static> ${mqtt_mqtt3cs_src})
-        ADD_LIBRARY(paho-mqtt3as-static STATIC $<TARGET_OBJECTS:common_ssl_obj_static> ${mqtt_mqtt3as_src})
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+      set(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
+      set(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
+    elseif(NOT WIN32)
+      set(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
+      set(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
+    endif()
 
-        SET_TARGET_PROPERTIES(
-            paho-mqtt3cs-static paho-mqtt3as-static PROPERTIES
-            VERSION ${CLIENT_VERSION}
-            SOVERSION ${PAHO_VERSION_MAJOR}
-            COMPILE_DEFINITIONS "OPENSSL=1;PAHO_MQTT_STATIC=1")
-        IF (NOT WIN32)
-            SET_TARGET_PROPERTIES(paho-mqtt3cs-static PROPERTIES OUTPUT_NAME paho-mqtt3cs)
-            SET_TARGET_PROPERTIES(paho-mqtt3as-static PROPERTIES OUTPUT_NAME paho-mqtt3as)
-        ENDIF()
+    if(NOT WIN32)
+      set_target_properties(paho-mqtt3cs-static PROPERTIES
+        LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}"
+      )
+      set_target_properties(paho-mqtt3as-static PROPERTIES
+        LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}"
+      )
+    endif()
 
-	    IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-			SET(MQTTCLIENT_ENTRY_POINT _MQTTClient_init)
-			SET(MQTTASYNC_ENTRY_POINT _MQTTAsync_init)
-		ELSEIF (NOT WIN32)
-			SET(MQTTCLIENT_ENTRY_POINT MQTTClient_init)
-			SET(MQTTASYNC_ENTRY_POINT MQTTAsync_init)
-		ENDIF()
+    if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+      if(NOT PAHO_BUILD_SHARED)
+        install(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+          #EXPORT eclipse-paho-mqtt-cTargets
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
+      else()
+        install(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+      endif()
+    endif()
 
-		IF (NOT WIN32)
-		    SET_TARGET_PROPERTIES(
-	            paho-mqtt3cs-static PROPERTIES
-	            LINK_FLAGS "-Wl,-init,${MQTTCLIENT_ENTRY_POINT}")
-	        SET_TARGET_PROPERTIES(
-	            paho-mqtt3as-static PROPERTIES
-	            LINK_FLAGS "-Wl,-init,${MQTTASYNC_ENTRY_POINT}")
-	    ENDIF()
+    foreach(TARGET paho-mqtt3cs-static paho-mqtt3as-static)
+      target_include_directories(${TARGET}
+        PUBLIC
+          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        PRIVATE
+          ${PROJECT_BINARY_DIR}
+      )
+      target_link_libraries(${TARGET}
+        PUBLIC
+          OpenSSL::SSL OpenSSL::Crypto ${LIBS_SYSTEM}
+      )
+    endforeach()
+  endif()
+endif()
 
-        IF (NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-            IF (NOT PAHO_BUILD_SHARED)
-                INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
-                    #EXPORT eclipse-paho-mqtt-cTargets
-                    ARCHIVE DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                    LIBRARY DESTINATION  ${CMAKE_INSTALL_LIBDIR}
-                    RUNTIME DESTINATION  ${CMAKE_INSTALL_BINDIR})
-            ELSE()
-                INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
-                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-            ENDIF()
-        ENDIF()
-        FOREACH(TARGET paho-mqtt3cs-static paho-mqtt3as-static)
-            TARGET_INCLUDE_DIRECTORIES(${TARGET}
-                PUBLIC
-                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                PRIVATE
-                    ${PROJECT_BINARY_DIR})
-            TARGET_LINK_LIBRARIES(${TARGET}
-                PUBLIC
-                    OpenSSL::SSL OpenSSL::Crypto ${LIBS_SYSTEM})
-        ENDFOREACH()
-    ENDIF()
-ENDIF()
+if(NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+  install(EXPORT eclipse-paho-mqtt-cTargets
+    FILE eclipse-paho-mqtt-cConfig.cmake
+    NAMESPACE eclipse-paho-mqtt-c::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
+  )
+endif()
 
-IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-    INSTALL(EXPORT eclipse-paho-mqtt-cTargets
-        FILE eclipse-paho-mqtt-cConfig.cmake
-        NAMESPACE eclipse-paho-mqtt-c::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
-ENDIF()
+include(CMakePackageConfigHelpers)
 
-INCLUDE(CMakePackageConfigHelpers)
-WRITE_BASIC_PACKAGE_VERSION_FILE("eclipse-paho-mqtt-cConfigVersion.cmake"
-    VERSION ${CLIENT_VERSION}
-    COMPATIBILITY SameMajorVersion)
-IF (NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-    INSTALL(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/eclipse-paho-mqtt-cConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c)
-ENDIF()
+write_basic_package_version_file("eclipse-paho-mqtt-cConfigVersion.cmake"
+  VERSION ${CLIENT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+if(NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_ALL)
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/eclipse-paho-mqtt-cConfigVersion.cmake"
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
+  )
+endif()
 
 # Base64 test
-ADD_EXECUTABLE( Base64Test EXCLUDE_FROM_ALL Base64.c Base64.h )
-TARGET_COMPILE_DEFINITIONS( Base64Test PUBLIC "-DBASE64_TEST" )
-IF (PAHO_WITH_SSL)
-	ADD_EXECUTABLE( Base64TestOpenSSL EXCLUDE_FROM_ALL Base64.c Base64.h )
-	TARGET_LINK_LIBRARIES( Base64TestOpenSSL OpenSSL::SSL OpenSSL::Crypto)
-	TARGET_COMPILE_DEFINITIONS( Base64TestOpenSSL PUBLIC "-DBASE64_TEST -DOPENSSL=1" )
-ENDIF (PAHO_WITH_SSL)
+add_executable(Base64Test EXCLUDE_FROM_ALL Base64.c Base64.h)
+target_compile_definitions(Base64Test PUBLIC BASE64_TEST)
+
+if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
+  add_executable(Base64TestOpenSSL EXCLUDE_FROM_ALL Base64.c Base64.h )
+  target_link_libraries(Base64TestOpenSSL ${SSL_LIBRARY_NAME}::SSL ${SSL_LIBRARY_NAME}::Crypto)
+  target_compile_definitions(Base64TestOpenSSL PUBLIC BASE64_TEST OPENSSL=1)
+endif()
 
 # SHA1 test
-ADD_EXECUTABLE( Sha1Test EXCLUDE_FROM_ALL SHA1.c SHA1.h )
-TARGET_COMPILE_DEFINITIONS( Sha1Test PUBLIC "-DSHA1_TEST" )
-IF (PAHO_WITH_SSL)
-	ADD_EXECUTABLE( Sha1TestOpenSSL EXCLUDE_FROM_ALL SHA1.c SHA1.h )
-	TARGET_LINK_LIBRARIES( Sha1TestOpenSSL OpenSSL::SSL OpenSSL::Crypto)
-	TARGET_COMPILE_DEFINITIONS( Sha1TestOpenSSL PUBLIC "-DSHA1_TEST -DOPENSSL=1" )
-ENDIF (PAHO_WITH_SSL)
+add_executable(Sha1Test EXCLUDE_FROM_ALL SHA1.c SHA1.h)
+target_compile_definitions(Sha1Test PUBLIC SHA1_TEST)
+
+if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
+	add_executable(Sha1TestOpenSSL EXCLUDE_FROM_ALL SHA1.c SHA1.h)
+	target_link_libraries(Sha1TestOpenSSL ${SSL_LIBRARY_NAME}::SSL ${SSL_LIBRARY_NAME}::Crypto)
+	target_compile_definitions(Sha1TestOpenSSL PUBLIC SHA1_TEST OPENSSL=1)
+endif()

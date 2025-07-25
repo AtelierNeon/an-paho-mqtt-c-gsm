@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2022 IBM Corp., Ian Craggs
+ * Copyright (c) 2009, 2023 IBM Corp., Ian Craggs
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -593,9 +593,11 @@ int SSLSocket_createContext(networkHandles* net, MQTTClient_SSLOptions* opts)
 		}
 	}
 
+/*
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	SSL_CTX_set_security_level(net->ctx, 1);
 #endif
+*/
 
 	if (opts->keyStore)
 	{
@@ -1031,7 +1033,6 @@ int SSLSocket_putdatas(SSL* ssl, SOCKET socket, char* buf0, size_t buf0len, Pack
 		free(iovec.iov_base);
 	else
 	{
-		int i;
 		free(buf0);
 		for (i = 0; i < bufs.count; ++i)
 		{

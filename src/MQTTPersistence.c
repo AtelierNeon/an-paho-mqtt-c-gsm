@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2022 IBM Corp.
+ * Copyright (c) 2009, 2023 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -187,7 +187,7 @@ int MQTTPersistence_restorePackets(Clients *c)
 	int rc = 0;
 	char **msgkeys = NULL,
 		 *buffer = NULL;
-	int nkeys, buflen;
+	int nkeys = 0, buflen;
 	int i = 0;
 	int msgs_sent = 0;
 	int msgs_rcvd = 0;
@@ -340,16 +340,28 @@ int MQTTPersistence_restorePackets(Clients *c)
 				buffer = NULL;
 			}
 			if (msgkeys[i])
+			{
 				free(msgkeys[i]);
+				msgkeys[i] = NULL;
+			}
 			i++;
 		}
-		if (msgkeys)
-			free(msgkeys);
 	}
 	Log(TRACE_MINIMUM, -1, "%d sent messages and %d received messages restored for client %s\n", 
 		msgs_sent, msgs_rcvd, c->clientID);
 	MQTTPersistence_wrapMsgID(c);
 exit:
+	if (msgkeys)
+	{
+		for (i = 0; i < nkeys; ++i)
+		{
+			if (msgkeys[i])
+				free(msgkeys[i]);
+		}
+		free(msgkeys);
+	}
+	if (buffer)
+		free(buffer);
 	FUNC_EXIT_RC(rc);
 	return rc;
 }
