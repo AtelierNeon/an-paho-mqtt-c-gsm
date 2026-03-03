@@ -18,11 +18,9 @@
 cmake_minimum_required(VERSION 3.5...3.15.0)
 
 project("Eclipse Paho C" 
-  VERSION 1.3.14
+  VERSION 1.3.15
   LANGUAGES C
 )
-
-set(CMAKE_C_STANDARD 99)
 
 message(STATUS "CMake version: " ${CMAKE_VERSION})
 message(STATUS "CMake system name: " ${CMAKE_SYSTEM_NAME})
