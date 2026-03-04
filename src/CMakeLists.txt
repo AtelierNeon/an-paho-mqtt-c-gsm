@@ -210,7 +210,7 @@ if(PAHO_BUILD_SHARED)
 
   if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
     install(TARGETS paho-mqtt3c paho-mqtt3a
-      EXPORT eclipse-paho-mqtt-cTargets
+      #EXPORT eclipse-paho-mqtt-cTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -262,13 +262,14 @@ if(PAHO_BUILD_STATIC)
   if(NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
     if(NOT PAHO_BUILD_SHARED)
       install(TARGETS paho-mqtt3c-static paho-mqtt3a-static
-        EXPORT eclipse-paho-mqtt-cTargets
+        #EXPORT eclipse-paho-mqtt-cTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       )
     else()
       install(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+        #EXPORT eclipse-paho-mqtt-cTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
     endif()
@@ -311,7 +312,7 @@ if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
     ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
     ## Note: SSL libraries must be recompiled due to ifdefs
     add_library(common_ssl_obj OBJECT ${common_src})
-    target_include_directories(common_ssl_obj PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
+    target_include_directories(common_ssl_obj PUBLIC ${SSL_INCLUDE_DIR})
 
     set_property(TARGET common_ssl_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
     target_compile_definitions(common_ssl_obj PRIVATE OPENSSL=1 PAHO_MQTT_EXPORTS=1)
@@ -378,7 +379,7 @@ if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
     ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
     ## Note: SSL libraries must be recompiled due ifdefs
     add_library(common_ssl_obj_static OBJECT ${common_src})
-    target_include_directories(common_ssl_obj_static PUBLIC ${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
+    target_include_directories(common_ssl_obj_static PUBLIC ${SSL_INCLUDE_DIR})
 
     set_property(TARGET common_ssl_obj_static PROPERTY POSITION_INDEPENDENT_CODE ON)
     target_compile_definitions(common_ssl_obj_static PRIVATE OPENSSL=1 PAHO_MQTT_STATIC=1)
@@ -433,6 +434,7 @@ if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
         )
       else()
         install(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+          #EXPORT eclipse-paho-mqtt-cTargets
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
       endif()
@@ -448,18 +450,18 @@ if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
       )
       target_link_libraries(${TARGET}
         PUBLIC
-          OpenSSL::SSL OpenSSL::Crypto ${LIBS_SYSTEM}
+          ${SSL_LIBRARY_NAME}::SSL ${SSL_LIBRARY_NAME}::Crypto ${LIBS_SYSTEM}
       )
     endforeach()
   endif()
 endif()
 
 if(NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-  install(EXPORT eclipse-paho-mqtt-cTargets
-    FILE eclipse-paho-mqtt-cConfig.cmake
-    NAMESPACE eclipse-paho-mqtt-c::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
-  )
+  #install(EXPORT eclipse-paho-mqtt-cTargets
+  #  FILE eclipse-paho-mqtt-cConfig.cmake
+  #  NAMESPACE eclipse-paho-mqtt-c::
+  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
+  #)
 endif()
 
 include(CMakePackageConfigHelpers)
