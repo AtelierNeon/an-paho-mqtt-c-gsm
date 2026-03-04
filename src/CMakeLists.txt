@@ -457,11 +457,11 @@ if(PAHO_WITH_SSL OR PAHO_WITH_LIBRESSL)
 endif()
 
 if(NOT PAHO_WITHOUT_INSTALL_FILES AND NOT PAHO_WITHOUT_INSTALL_LIBRARIES AND NOT PAHO_WITHOUT_INSTALL_ALL)
-  install(EXPORT eclipse-paho-mqtt-cTargets
-    FILE eclipse-paho-mqtt-cConfig.cmake
-    NAMESPACE eclipse-paho-mqtt-c::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
-  )
+  #install(EXPORT eclipse-paho-mqtt-cTargets
+  #  FILE eclipse-paho-mqtt-cConfig.cmake
+  #  NAMESPACE eclipse-paho-mqtt-c::
+  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eclipse-paho-mqtt-c
+  #)
 endif()
 
 include(CMakePackageConfigHelpers)
