@@ -22,8 +22,9 @@ project("Eclipse Paho C"
   LANGUAGES C
 )
 
-message(STATUS "CMake version: " ${CMAKE_VERSION})
-message(STATUS "CMake system name: " ${CMAKE_SYSTEM_NAME})
+message(STATUS "Eclipse Paho C version ${PROJECT_VERSION}")
+#message(STATUS "CMake version: " ${CMAKE_VERSION})
+#message(STATUS "CMake system name: " ${CMAKE_SYSTEM_NAME})
 
 set(CMAKE_SCRIPTS "${PROJECT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
